@@ -26,6 +26,8 @@ import java.util.Objects;
 @Table(name = User.TABLE_NAME)
 public class User {
 
+    //Essas interfaces são "marcadores" usados para agrupar regras de validação. Isso permite que você aplique regras diferentes dependendo da situação. 
+    // Por exemplo, você pode exigir certos dados na criação do usuário que não são obrigatórios ou que não podem ser alterados em uma atualização.
     public interface CreateUser {}
     public interface UpdateUser{}
 
@@ -42,15 +44,21 @@ public class User {
 //Configura a coluna no banco de dados com tamanho máximo de 100 caracteres, 
 // obrigatoriedade de preenchimento (nullable = false) e valor único.
     @Column(name="username", length = 100, nullable = false, unique=true)
-//Anotações de validação que impedem que o campo seja nulo ou vazio ao nível da aplicação
+    //Anotações de validação que impedem que o campo seja nulo ou vazio ao nível da aplicação
+    //As validações só ocorrem quando o grupo for CreateUser.class. 
+    // Isso significa que, se houver uma atualização onde o nome de usuário não é enviado, a validação não travará o processo.
     @NotNull(groups = CreateUser.class)
     @NotEmpty(groups = CreateUser.class)
 // Restringe o tamanho do texto para que tenha entre 2 e 100 caracteres.
     @Size(groups = CreateUser.class, min = 2, max = 100)
     private String username;
 
+    //Esta é uma anotação da biblioteca Jackson (usada pelo Spring para converter objetos em JSON). 
+    // O acesso WRITE_ONLY (apenas escrita) garante que a senha possa ser enviada para a aplicação (para criar ou atualizar o usuário),
+    //  mas nunca será enviada de volta na resposta JSON ao cliente, protegendo o dado sensível.
     @JsonProperty(access = Access.WRITE_ONLY)
     @Column(name="password", length = 60, nullable = false)
+    //As validações ocorrem tanto em CreateUser.class quanto em UpdateUser.class, garantindo que uma senha válida sempre seja fornecida em ambos os casos.
     @NotNull(groups = {CreateUser.class, UpdateUser.class})
     @NotEmpty(groups = { CreateUser.class, UpdateUser.class})
     @Size(groups = { CreateUser.class, UpdateUser.class}, min = 8, max = 60)
@@ -60,6 +68,7 @@ public class User {
     @OneToMany(mappedBy = "user")
     private List<Task> tasks = new ArrayList<Task>();
 
+    //O JPA exige obrigatoriamente um construtor padrão (sem argumentos) para poder instanciar o objeto quando recupera dados do banco.
     public User() {
 
     }
@@ -108,6 +117,8 @@ public class User {
 
 
     @Override
+    //Verifica se dois objetos são o mesmo, comparando principalmente o id. 
+    // No contexto do JPA, isso é fundamental para saber se dois objetos representam o mesmo registro no banco de dados.
     public boolean equals(Object obj) {
         if(obj == this)
             return true;
@@ -132,6 +143,7 @@ public class User {
     }
 
     @Override
+    //Gera um código numérico único para o objeto, o que é crucial para o desempenho quando você usa o usuário em coleções como Set ou Map.
     public int hashCode(){
         final int prime = 31;
         int result = 1;
