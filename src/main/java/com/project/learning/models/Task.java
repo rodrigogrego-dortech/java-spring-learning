@@ -16,6 +16,10 @@ import java.util.Objects;
 @Entity
 @Table (name = Task.TABLE_NAME)
 public class Task {
+
+    public interface CreateTask {}
+    public interface UpdateTask{}
+    public interface DeleteTask{}
     
     public static final String TABLE_NAME = "task";
 
