@@ -11,20 +11,29 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
 
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-
 // Indica que esta classe é uma entidade JPA, o que significa que ela está pronta para ser
 // armazenada em um banco de dados relacional
 @Entity
 //Especifica o nome da tabela no banco de dados. No seu código, ela utiliza a constante
 //  TABLE_NAME ("user") definida dentro da classe
 @Table(name = User.TABLE_NAME)
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
+@EqualsAndHashCode
+
 public class User {
 
     //Essas interfaces são "marcadores" usados para agrupar regras de validação. Isso permite que você aplique regras diferentes dependendo da situação. 
@@ -67,89 +76,8 @@ public class User {
     private String password;
 
     @OneToMany(mappedBy = "user")
+    @JsonProperty(access = Access.WRITE_ONLY)
     private List<Task> tasks = new ArrayList<Task>();
 
-    //O JPA exige obrigatoriamente um construtor padrão (sem argumentos) para poder instanciar o objeto quando recupera dados do banco.
-    public User() {
-
-    }
-
-
-    public User(Long id, String username, String password) {
-        this.id = id;
-        this.username = username;
-        this.password = password;
-    }
-
-
-
-    public Long getId() {
-        return this.id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getUsername() {
-        return this.username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getPassword() {
-        return this.password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    @JsonIgnore
-    public List<Task> getTasks() {
-        return this.tasks;
-    }
-
-    public void setTasks(List<Task> tasks) {
-        this.tasks = tasks;
-    }
-
-
-    @Override
-    //Verifica se dois objetos são o mesmo, comparando principalmente o id. 
-    // No contexto do JPA, isso é fundamental para saber se dois objetos representam o mesmo registro no banco de dados.
-    public boolean equals(Object obj) {
-        if(obj == this)
-            return true;
-
-        if (obj == null)
-            return false;
-
-        if(!(obj instanceof User))
-            return false;
-
-
-        User other = (User) obj;
-
-        if (this.id == null)
-            if (other.id != null)
-                return false;
-            else if (!this.id.equals(other.id))
-                return false;
-        return Objects.equals(this.id, other.id) && Objects.equals(this.username, other.username)
-                && Objects.equals(this.password, other.password);
-
-    }
-
-    @Override
-    //Gera um código numérico único para o objeto, o que é crucial para o desempenho quando você usa o usuário em coleções como Set ou Map.
-    public int hashCode(){
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((this.id == null) ? 0 : this.id.hashCode());
-
-        return result;
-    }
+   
 }
