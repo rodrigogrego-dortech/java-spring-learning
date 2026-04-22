@@ -1,6 +1,8 @@
 package com.project.learning.services;
 
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -8,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.project.learning.models.User;
+import com.project.learning.models.enums.ProfileEnum;
 import com.project.learning.repositories.UserRepository;
 import com.project.learning.services.exceptions.DataBindingViolationException;
 import com.project.learning.services.exceptions.ObjectNotFoundException;
@@ -59,7 +62,7 @@ public class UserService {
          // Garante que será uma nova entidade no banco
         obj.setId(null);
         obj.setPassword(this.bCryptPasswordEncoder.encode(obj.getPassword()));
-
+        obj.setProfiles(Stream.of(ProfileEnum.USER.getCode()).collect(Collectors.toSet()));
         return this.userRepository.save(obj);
     }
 

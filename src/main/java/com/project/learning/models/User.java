@@ -1,7 +1,10 @@
 package com.project.learning.models;
 
+import javax.persistence.CollectionTable;
 import javax.persistence.Column;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -13,6 +16,7 @@ import javax.validation.constraints.Size;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
+import com.project.learning.models.enums.ProfileEnum;
 
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
@@ -21,7 +25,10 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 // Indica que esta classe é uma entidade JPA, o que significa que ela está pronta para ser
 // armazenada em um banco de dados relacional
 @Entity
@@ -75,9 +82,54 @@ public class User {
 
     private String password;
 
+    /**
+     * Relação 1:N com Task.
+     *
+     * mappedBy = "user" indica que o lado dono da relação está na entidade Task.
+     *
+     * WRITE_ONLY evita:
+     * - loop infinito em serialização (User -> Task -> User...)
+     * - exposição desnecessária de dados
+     */
     @OneToMany(mappedBy = "user")
     @JsonProperty(access = Access.WRITE_ONLY)
     private List<Task> tasks = new ArrayList<Task>();
+
+
+     /**
+     * Representa os perfis (roles) do usuário.
+     *
+     * - ElementCollection: não é entidade separada, apenas valores simples (Integer)
+     * - Armazenado em tabela auxiliar "user_profile"
+     * - FetchType.EAGER: sempre carregado junto com User para que ao buscar o usuário, busque também o perfil
+     *
+     * - Armazena Integer no banco
+     * - Converte para Enum na aplicação
+     */
+    @ElementCollection(fetch = FetchType.EAGER)
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    @CollectionTable(name = "user_profile")
+    @Column(name="profile", nullable = false)
+    private Set<Integer> profiles = new HashSet<>();
+
+    /**
+     * Converte os perfis armazenados como Integer para Enum.
+     *
+     * CONTEXTO:
+     * - O banco armazena valores numéricos (mais leve e eficiente)
+     * - A aplicação trabalha com Enum (mais seguro e legível)
+     *
+     * RELAÇÃO:
+     * - Usa ProfileEnum.toEnum() para mapear os valores
+    */
+    public Set<ProfileEnum> getProfiles() {
+        return this.profiles.stream().map(x -> ProfileEnum.toEnum(x)).collect(Collectors.toSet());
+    }
+
+    public void addProfile(ProfileEnum profileEnum) {
+        this.profiles.add(profileEnum.getCode());
+    }
+
 
    
 }
