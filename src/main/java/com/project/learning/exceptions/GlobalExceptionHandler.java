@@ -21,7 +21,6 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 import com.project.learning.services.exceptions.DataBindingViolationException;
 import com.project.learning.services.exceptions.ObjectNotFoundException;
 
-import lombok.extern.java.Log;
 import lombok.extern.slf4j.Slf4j;
 
 /**
